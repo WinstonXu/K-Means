@@ -17,7 +17,8 @@ class K_Means:
         self.movie = mydata[:,1]
         self.rating = mydata[:,2]
         return self.user, self.movie, self.rating
-
+    #Create dictionary of movies as keys and dictionary as value
+    #That dictionary contains users as keys and ratings as values
     def makeDictionary(self):
         self.dictionary = {}
         for i in range(len(self.movie)):
@@ -28,7 +29,6 @@ class K_Means:
             else:
                 newMovie = dict([(self.user[i], self.rating[i])])
                 self.dictionary[self.movie[i]] = newMovie
-        # print self.dictionary[1]
         return self.dictionary
 
     def makeCluster(self):
@@ -41,23 +41,15 @@ class K_Means:
         self.centroids = np.round(self.centroids)
 
         for movie in self.dictionary.keys():
+            #Finds the index of the closest centroid
             closest = np.argmin(self.calculateDistance(self.dictionary[movie]))
-            # print closest
-            # newVector = np.zeros(len(self.user))
-            # for user in self.dictionary[movie].keys():
-            #     # print type(self.dictionary[movie][user])
-            #     newVector[user] = self.dictionary[movie][user]
-            #     # print newVector[user]
-            # newVector = newVector.tolist()
             newVector = []
             newVector.append(movie)
-            # print len(newVector), len(self.user)
+            #Add the movie to the list of members of the closest centroid
             self.membership[closest].append(newVector)
-            # print type(self.membership[closest]), type(newVector)
-            # print np.count_nonzero(self.membership[closest][0])
             self.recalculateCentroid(self.membership[closest], closest)
 
-
+    #Uses Euclidean distance matches ratings between users
     def calculateDistance(self, movieDictionary):
         distList = []
         for centroid in self.centroids:
@@ -65,26 +57,38 @@ class K_Means:
             for user in movieDictionary.keys():
                 total += (centroid[user]-movieDictionary[user])**2
             distList.append(total)
-        # print distList
         return distList
-
+    #Sums up all the ratings for that user, divides by number of members
     def recalculateCentroid(self, memList, index):
         newCentroid = np.zeros(len(self.user))
         for i in range(len(memList)):
             for j in range(len(memList[i])):
-                # newCentroid[j] += memList[i][j]
                 movie = memList[i][j]
                 for user in self.dictionary[movie].keys():
                     newCentroid[user] += self.dictionary[movie][user]
-        # newCentroid = np.zeros(len(memList))
         newCentroid = np.round(newCentroid/len(memList))
         self.centroids[index] = newCentroid
-
+    #Print out closest members to each centroid
     def getInfo(self):
         for i in range(len(self.membership)):
-            print "New Cluster"
+            print "Cluster %d" %i
+            lyst = self.centroidDist(self.membership[i], i)
+            sort = lyst.sort()
             for j in range(10):
-                print self.membership[i][j]
+                dist, movie = lyst[j]
+                print int(movie)
+
+    #Euclidean distance of member movie from its centroid
+    def centroidDist(self, movieList, centroidInd):
+        distList = []
+        for mem in movieList:
+            total = 0
+            # print self.dictionary[mem].keys()
+            for key in self.dictionary[mem[0]].keys():
+                total += (self.centroids[centroidInd][key]-self.dictionary[mem[0]][key])**2
+            distList.append((total, mem[0]))
+        return distList
+
 
 
 
