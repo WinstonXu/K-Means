@@ -17,9 +17,12 @@ class K_Means:
         self.movie = mydata[:,1]
         self.rating = mydata[:,2]
         return self.user, self.movie, self.rating
-    #Create dictionary of movies as keys and dictionary as value
-    #That dictionary contains users as keys and ratings as values
+
     def makeDictionary(self):
+        """
+        Create dictionary of movies as keys and dictionary as value
+        That dictionary contains users as keys and ratings as values
+        """
         self.dictionary = {}
         for i in range(len(self.movie)):
             if self.movie[i] in self.dictionary:
@@ -32,7 +35,9 @@ class K_Means:
         return self.dictionary
 
     def makeCluster(self):
-        #Create random clusters
+        """Create random sparse vectors as centroids
+        adds movies to centroid membership lists based on distance from centroid
+        Recalculate the centroid after every new addition"""
         for i in range(self.k):
             #vector of length total users, pick random number 1-5
             self.centroids.append(np.random.uniform(low=1,high=5,size=len(self.user)))
@@ -49,8 +54,9 @@ class K_Means:
             self.membership[closest].append(newVector)
             self.recalculateCentroid(self.membership[closest], closest)
 
-    #Uses Euclidean distance matches ratings between users
     def calculateDistance(self, movieDictionary):
+        '''Uses Euclidean distance to match ratings between users
+        Returns list of distances between user ratings centroids'''
         distList = []
         for centroid in self.centroids:
             total = 0
@@ -58,8 +64,9 @@ class K_Means:
                 total += (centroid[user]-movieDictionary[user])**2
             distList.append(total)
         return distList
-    #Sums up all the ratings for that user, divides by number of members
+
     def recalculateCentroid(self, memList, index):
+        '''Sums up all the ratings for that user, divides by number of members'''
         newCentroid = np.zeros(len(self.user))
         for i in range(len(memList)):
             for j in range(len(memList[i])):
@@ -68,8 +75,9 @@ class K_Means:
                     newCentroid[user] += self.dictionary[movie][user]
         newCentroid = np.round(newCentroid/len(memList))
         self.centroids[index] = newCentroid
-    #Print out closest members to each centroid
+
     def getInfo(self):
+        '''Print out closest members to each centroid'''
         for i in range(len(self.membership)):
             print "Cluster %d" %i
             lyst = self.centroidDist(self.membership[i], i)
@@ -78,12 +86,12 @@ class K_Means:
                 dist, movie = lyst[j]
                 print int(movie)
 
-    #Euclidean distance of member movie from its centroid
+
     def centroidDist(self, movieList, centroidInd):
+        '''Euclidean distance of member movie from its centroid'''
         distList = []
         for mem in movieList:
             total = 0
-            # print self.dictionary[mem].keys()
             for key in self.dictionary[mem[0]].keys():
                 total += (self.centroids[centroidInd][key]-self.dictionary[mem[0]][key])**2
             distList.append((total, mem[0]))
